@@ -6,11 +6,18 @@ public class Basic
 
     String finalS1 = "";
     String finalS2 = "";
+
+    String alignment1 = "";
+    String alignment2 = "";
     int delta = 30;
     int[][] alpha = {{0, 110, 48, 94},
             {110, 0, 118, 48},
             {48, 118, 0, 110},
             {94, 48, 110, 0}};
+
+    int OPTval = 0;
+    float timeTaken = 0;
+    float memoryUsed = 0;
 
     public static void main(String [] args) throws IOException
     {
@@ -22,8 +29,34 @@ public class Basic
         System.out.println(obj.finalS1);
         System.out.println(obj.finalS2);
 
-        System.out.println(obj.generateOPT());
+        double beforeUsedMem = getMemoryInKB();
+        double startTime = getTimeInMilliseconds();
 
+        int [][] OPT = obj.generateOPT();
+        obj.generateAlignments(OPT);
+
+        double afterUsedMem = getMemoryInKB();
+        double endTime = getTimeInMilliseconds();
+
+        double totalUsage = afterUsedMem-beforeUsedMem;
+        double totalTime = endTime - startTime;
+
+        obj.createOutput("/Users/anushkadeshpande/IdeaProjects/javaProject/output.txt", totalTime, totalUsage);
+
+        System.out.println(obj.alignment1);
+        System.out.println(obj.alignment2);
+
+    }
+
+    private static double getMemoryInKB()
+    {
+        double total = Runtime.getRuntime().totalMemory();
+        return (total-Runtime.getRuntime().freeMemory())/10e3;
+    }
+
+    private static double getTimeInMilliseconds()
+    {
+        return System.nanoTime()/10e6;
     }
 
     public void getInput(String filename)throws IOException
@@ -114,32 +147,118 @@ public class Basic
         return alpha[x][y];
     }
 
-    public int generateOPT()
+    public int[][] generateOPT()
     {
         int m = finalS1.length();
         int n = finalS2.length();
-        int opt[][] = new int[finalS1.length()][finalS2.length()];
+        int opt[][] = new int[finalS1.length()+1][finalS2.length()+1];
         //System.out.println(m + " " + n);
 
-        for(int i=0;i<m;i++)
+        for(int i=0;i<=m;i++)
         {
             opt[i][0] = delta * i;
         }
 
-        for(int j=0;j<n;j++)
+        for(int j=0;j<=n;j++)
         {
             opt[0][j] = delta * j;
         }
 
-        for(int i=1;i<m;i++)
+        for(int i=1;i<=m;i++)
         {
-            for(int j = 1; j<n;j++)
+            for(int j = 1; j<=n;j++)
             {
-                opt[i][j] = Math.min(MismatchCost(i, j) + opt[i-1][j-1], Math.min(delta + opt[i-1][j], delta + opt[i][j-1]));
-                //System.out.print(opt[i][j] + " ");
+                if(finalS1.charAt(i-1)==finalS2.charAt(j-1))
+                {
+                    opt[i][j] = opt[i-1][j-1];
+                }
+                else
+                {
+                    opt[i][j] = Math.min(MismatchCost(i - 1, j - 1) + opt[i - 1][j - 1], Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
+                    //System.out.print(opt[i][j] + " ");
+                }
             }
             //System.out.println();
         }
-        return opt[m-1][n-1];
+        OPTval = opt[m][n];
+        return opt;
     }
+
+    public void generateAlignments(int[][] OPT)
+    {
+        int i = finalS1.length();
+        int j = finalS2.length();
+
+        while(i > 0 && j > 0)
+        {
+            if (finalS1.charAt(i-1) == finalS2.charAt(j-1))
+            {
+                alignment1 = finalS1.charAt(i-1) + alignment1;
+                alignment2 = finalS2.charAt(j-1) + alignment2;
+                i--;
+                j--;
+            }
+            else if(OPT[i][j-1] + delta == OPT[i][j])
+            {
+                alignment2 = finalS2.charAt(j-1) + alignment2;
+                alignment1 = "_" + alignment1;
+                j--;
+            }
+            else if(OPT[i-1][j] + delta == OPT[i][j]) {
+                alignment1 = finalS1.charAt(i - 1) + alignment1;
+                alignment2 = "_" + alignment2;
+                i--;
+            }
+
+            else //if(OPT[i-1][j-1] + MismatchCost(i-1, j-1) == OPT[i][j])
+            {
+                alignment1 = finalS1.charAt(i-1) + alignment1;
+                alignment2 = finalS2.charAt(j-1) + alignment2;
+                i--;
+                j--;
+            }
+        }
+
+        if (j > 0)
+        {
+            while(j > 0)
+            {
+                alignment2 = finalS2.charAt(j-1) + alignment2;
+                alignment1 = "_" + alignment1;
+                j--;
+            }
+        }
+
+        if(i > 0)
+        {
+            while( i > 0)
+            {
+                alignment1 = finalS1.charAt(i-1) + alignment1;
+                alignment2 = "_" + alignment2;
+                i--;
+            }
+        }
+    }
+
+    public void createOutput(String outputFile, double time, double memory)
+    {
+        try
+        {
+            File file = new File(outputFile);
+            FileWriter fileWriter = new FileWriter(outputFile);
+            fileWriter.write(OPTval + "\n");
+            fileWriter.write(alignment1 + "\n");
+            fileWriter.write(alignment2 + "\n");
+            fileWriter.write(time + "\n");
+            fileWriter.write(memory + "\n");
+
+            fileWriter.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
 }
