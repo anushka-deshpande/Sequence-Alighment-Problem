@@ -16,8 +16,6 @@ public class Basic
             {94, 48, 110, 0}};
 
     int OPTval = 0;
-    float timeTaken = 0;
-    float memoryUsed = 0;
 
     public static void main(String [] args) throws IOException
     {
@@ -259,6 +257,4 @@ public class Basic
             e.printStackTrace();
         }
     }
-
-
 }
