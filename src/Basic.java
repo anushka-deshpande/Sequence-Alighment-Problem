@@ -104,11 +104,8 @@ public class Basic
         finalS1 = s1;
         finalS2 = s2;
     }
-    public int MismatchCost(int i, int j)
+    public int MismatchCost(char a, char b)
     {
-        char a = finalS1.charAt(i);
-        char b = finalS2.charAt(j);
-
         int x = 0,y = 0;
         switch(a)
         {
@@ -172,7 +169,8 @@ public class Basic
                 }
                 else
                 {
-                    opt[i][j] = Math.min(MismatchCost(i - 1, j - 1) + opt[i - 1][j - 1], Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
+                    opt[i][j] = Math.min(MismatchCost(finalS1.charAt(i - 1), finalS2.charAt(j - 1)) + opt[i - 1][j - 1],
+                            Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
                     //System.out.print(opt[i][j] + " ");
                 }
             }

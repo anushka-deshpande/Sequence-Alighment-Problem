@@ -74,9 +74,9 @@ public class Efficient
         finalS2 = s2;
     }
 
-    public int MismatchCost(int i, int j) {
-        char a = finalS1.charAt(i);
-        char b = finalS2.charAt(j);
+    public int MismatchCost(char a, char b) {
+        //char a = finalS1.charAt(i);
+        //char b = finalS2.charAt(j);
 
         int x = 0, y = 0;
         switch (a) {
@@ -123,6 +123,9 @@ public class Efficient
         double startTime = getTimeInMilliseconds();
 
         String[] alignments = obj.divide(obj.finalS1, obj.finalS2);
+        obj.alignment1 = alignments[0];
+        obj.alignment2 = alignments[1];
+        int cost = obj.getCost();
 
         double afterUsedMem = getMemoryInKB();
         double endTime = getTimeInMilliseconds();
@@ -130,7 +133,7 @@ public class Efficient
         double totalUsage = afterUsedMem-beforeUsedMem;
         double totalTime = endTime - startTime;
 
-        obj.createOutput("/Users/anushkadeshpande/IdeaProjects/javaProject/output.txt", totalTime, totalUsage);
+        obj.createOutput("/Users/anushkadeshpande/IdeaProjects/javaProject/output2.txt",cost, totalTime, totalUsage);
 
         System.out.println(obj.alignment1);
         System.out.println(obj.alignment2);
@@ -143,7 +146,7 @@ public class Efficient
 
         if( x.length() <= 2 || y.length() <= 2)
         {
-            return new String[]{getAlignment(x, y)};
+            return getAlignment(x, y);
         }
         else
         {
@@ -185,12 +188,133 @@ public class Efficient
 
     public int[] setCost(String x, String y)
     {
-        return new int[]{1};
+        int [][] opt = new int[2][y.length()+1];
+        int index = 1;
+
+        while(index <= x.length())
+        {
+            if(index == 1)
+            {
+                for (int i = 0; i < y.length() + 1; i++)
+                {
+                    opt[0][i] = i * delta;
+                }
+            }
+
+            opt[1][0] = index * delta;
+
+            for(int j = 1; j < y.length() + 1; j++)
+            {
+                if(x.charAt(index-1) == y.charAt(j-1))
+                {
+                    opt[1][j] = opt[0][j-1];
+                }
+                opt[1][j] = Math.min(Math.min(MismatchCost(x.charAt(index-1), y.charAt(j-1)) + opt[0][j-1], delta + opt[0][j]), delta + opt[1][j-1]);
+            }
+
+            index++;
+
+            for(int k=0;k<y.length()+1;k++)
+            {
+                opt[0][k] = opt[1][k];
+            }
+        }
+
+        return opt[1];
     }
 
-    public String getAlignment(String x, String y)
+    public String[] getAlignment(String x, String y)
     {
-        return "";
+        String align1 = "";
+        String align2 = "";
+
+        int m = x.length();
+        int n = y.length();
+        int opt[][] = new int[x.length()+1][y.length()+1];
+        //System.out.println(m + " " + n);
+
+        for(int i=0;i<=m;i++)
+        {
+            opt[i][0] = delta * i;
+        }
+
+        for(int j=0;j<=n;j++)
+        {
+            opt[0][j] = delta * j;
+        }
+
+        for(int i=1;i<=m;i++)
+        {
+            for(int j = 1; j<=n;j++)
+            {
+                if(x.charAt(i-1)==y.charAt(j-1))
+                {
+                    opt[i][j] = opt[i-1][j-1];
+                }
+                else
+                {
+                    opt[i][j] = Math.min(MismatchCost(x.charAt(i - 1), y.charAt(j - 1)) + opt[i - 1][j - 1],
+                            Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
+                    //System.out.print(opt[i][j] + " ");
+                }
+            }
+            //System.out.println();
+        }
+
+        int i = x.length();
+        int j = y.length();
+
+        while(i > 0 && j > 0)
+        {
+            if (x.charAt(i-1) == y.charAt(j-1))
+            {
+                align1 = x.charAt(i-1) + align1;
+                align2 = y.charAt(j-1) + align2;
+                i--;
+                j--;
+            }
+            else if(opt[i][j-1] + delta == opt[i][j])
+            {
+                align2 = y.charAt(j-1) + align2;
+                align1 = "_" + align1;
+                j--;
+            }
+            else if(opt[i-1][j] + delta == opt[i][j]) {
+                align1 = x.charAt(i - 1) + align1;
+                align2 = "_" + align2;
+                i--;
+            }
+
+            else //if(OPT[i-1][j-1] + MismatchCost(i-1, j-1) == OPT[i][j])
+            {
+                align1 = x.charAt(i-1) + align1;
+                align2 = y.charAt(j-1) + align2;
+                i--;
+                j--;
+            }
+        }
+
+        if (j > 0)
+        {
+            while(j > 0)
+            {
+                align2 = y.charAt(j-1) + align2;
+                align1 = "_" + align1;
+                j--;
+            }
+        }
+
+        if(i > 0)
+        {
+            while( i > 0)
+            {
+                align1 = x.charAt(i-1) + align1;
+                align2 = "_" + align2;
+                i--;
+            }
+        }
+
+        return new String[] {align1, align2};
     }
 
     public String reverseString(String s)
@@ -200,8 +324,46 @@ public class Efficient
         return sb.toString();
     }
 
-    public void createOutput(String s, double t, double d)
+    public int getCost()
     {
+        int cost = 0;
 
+        for (int i = 0; i < alignment1.length(); i++) {
+            if (i < alignment2.length()) {
+                // alignment
+                if (alignment1.charAt(i) == alignment2.charAt(i)) {
+                    cost = cost + alpha[0][0];
+                }
+                // gap
+                else if (alignment1.charAt(i) == '_' || alignment2.charAt(i) == '_') {
+                    cost = cost + delta;
+                }
+                // mismatch
+                else {
+                    cost = cost + MismatchCost(alignment1.charAt(i), alignment2.charAt(i));
+                }
+            }
+        }
+        return cost;
+    }
+
+    public void createOutput(String outputFile,int cost, double time, double memory)
+    {
+        try
+        {
+            File file = new File(outputFile);
+            FileWriter fileWriter = new FileWriter(outputFile);
+            fileWriter.write(cost + "\n");
+            fileWriter.write(alignment1 + "\n");
+            fileWriter.write(alignment2 + "\n");
+            fileWriter.write(time + "\n");
+            fileWriter.write(memory + "\n");
+
+            fileWriter.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 }
