@@ -1,19 +1,29 @@
+/* CSCI570 Fall 22' Project
+   Sequence Alignment Problem
+   Efficient.java
+
+   Team Members :-
+   Anushka Deshpande 5914802345
+   Omkar Nikhal 5144173884
+ */
+
 import java.io.*;
 import java.util.*;
 
 public class Efficient
 {
-
-    String finalS1 = "";
-    String finalS2 = "";
-
-    String alignment1 = "";
-    String alignment2 = "";
+    String finalString1 = "";
+    String finalString2 = "";
+    String finalAlignment1 = "";
+    String finalAlignment2 = "";
     int delta = 30;
-    int[][] alpha = {{0, 110, 48, 94},
+    int cost = 0;
+    int[][] alpha = {
+            {0, 110, 48, 94},
             {110, 0, 118, 48},
             {48, 118, 0, 110},
-            {94, 48, 110, 0}};
+            {94, 48, 110, 0}
+    };
 
     private static double getMemoryInKB()
     {
@@ -28,9 +38,6 @@ public class Efficient
 
     public void getInput(String filename)throws IOException
     {
-        List<Integer> a1 = new ArrayList<>();
-        List<Integer> a2 = new ArrayList<>();
-
         File file = new File(filename);
         Scanner scanFile;
         try {
@@ -42,90 +49,71 @@ public class Efficient
             return;
         }
 
-        int j = 0;
+        int i = 0;
         String s1 = scanFile.nextLine();
-        String originalS1 = s1;
+        String originalString1 = s1;
 
         while(scanFile.hasNextInt())
         {
             int index = scanFile.nextInt();
-            a1.add(index);
-            j += 1;
+            i += 1;
             s1 = s1.substring(0, index+1) + s1 + s1.substring(index+1);
         }
 
-        int k = 0;
+        int j = 0;
         String s2 = scanFile.next();
-        String originalS2 = s2;
+        String originalString2 = s2;
 
         while(scanFile.hasNextInt())
         {
             int index = scanFile.nextInt();
-            a2.add(index);
-            k += 1;
+            j += 1;
             s2 = s2.substring(0, index + 1) + s2 + s2.substring(index + 1);
         }
+
         scanFile.close();
 
-        assert (s1.length() == Math.pow(2, j) * originalS1.length() &&
-                s1.length() == Math.pow(2, k) * originalS2.length());
+        assert (s1.length() == Math.pow(2, i) * originalString1.length() &&
+                s1.length() == Math.pow(2, j) * originalString2.length());
 
-        finalS1 = s1;
-        finalS2 = s2;
+        finalString1 = s1;
+        finalString2 = s2;
     }
 
-    public int MismatchCost(char a, char b) {
-        //char a = finalS1.charAt(i);
-        //char b = finalS2.charAt(j);
+    public int MismatchCost(char a, char b)
+    {
+        int x = 0,y = 0;
 
-        int x = 0, y = 0;
         switch (a) {
-            case 'A':
-                x = 0;
-                break;
-            case 'C':
-                x = 1;
-                break;
-            case 'G':
-                x = 2;
-                break;
-            case 'T':
-                x = 3;
-                break;
+            case 'A' -> x = 0;
+            case 'C' -> x = 1;
+            case 'G' -> x = 2;
+            case 'T' -> x = 3;
         }
+
         switch (b) {
-            case 'A':
-                y = 0;
-                break;
-            case 'C':
-                y = 1;
-                break;
-            case 'G':
-                y = 2;
-                break;
-            case 'T':
-                y = 3;
-                break;
+            case 'A' -> y = 0;
+            case 'C' -> y = 1;
+            case 'G' -> y = 2;
+            case 'T' -> y = 3;
         }
+
         return alpha[x][y];
     }
 
-    public static void main(String args[]) throws IOException
+    public static void main(String[] args) throws IOException
     {
-        String filename = "/Users/anushkadeshpande/IdeaProjects/javaProject/input1.txt";
+        String filename = args[0];
         Efficient obj = new Efficient();
         obj.getInput(filename);
-
-        System.out.println(obj.finalS1);
-        System.out.println(obj.finalS2);
 
         double beforeUsedMem = getMemoryInKB();
         double startTime = getTimeInMilliseconds();
 
-        String[] alignments = obj.divide(obj.finalS1, obj.finalS2);
-        obj.alignment1 = alignments[0];
-        obj.alignment2 = alignments[1];
-        int cost = obj.getCost();
+        String[] alignments = obj.divide(obj.finalString1, obj.finalString2);
+        obj.finalAlignment1 = alignments[0];
+        obj.finalAlignment2 = alignments[1];
+        obj.cost = obj.getCost();
 
         double afterUsedMem = getMemoryInKB();
         double endTime = getTimeInMilliseconds();
@@ -133,16 +121,13 @@ public class Efficient
         double totalUsage = afterUsedMem-beforeUsedMem;
         double totalTime = endTime - startTime;
 
-        obj.createOutput("/Users/anushkadeshpande/IdeaProjects/javaProject/output2.txt",cost, totalTime, totalUsage);
-
-        System.out.println(obj.alignment1);
-        System.out.println(obj.alignment2);
+        obj.createOutput(args[1], totalTime, totalUsage);
     }
 
     public String[] divide(String x, String y)
     {
-        String al1 = "";
-        String al2 = "";
+        String alignment1;
+        String alignment2;
 
         if( x.length() <= 2 || y.length() <= 2)
         {
@@ -150,8 +135,8 @@ public class Efficient
         }
         else
         {
-            int[] yLeftAlign = setCost(x.substring(0, x.length()/2), y);
-            int[] yRightAlign = setCost(reverseString(x.substring(x.length()/2)), reverseString(y));
+            int[] yLeftAlign = assignCost(x.substring(0, x.length()/2), y);
+            int[] yRightAlign = assignCost(reverseString(x.substring(x.length()/2)), reverseString(y));
 
             int min = yLeftAlign[0] + yRightAlign[yRightAlign.length - 1];
 
@@ -169,7 +154,7 @@ public class Efficient
             String yL = "";
             String yR = "";
 
-            if( k >=1)
+            if(k>=1)
             {
                 yL = y.substring(0, k);
                 yR = y.substring(k);
@@ -178,15 +163,14 @@ public class Efficient
             String[] lower = divide(x.substring(0, x.length()/2), yL);
             String[] upper = divide(x.substring(x.length()/2), yR);
 
-            al1 = lower[0] + upper[0];
-            al2 = lower[1] + upper[1];
+            alignment1 = lower[0] + upper[0];
+            alignment2 = lower[1] + upper[1];
 
-            return new String[] {al1, al2};
-
+            return new String[] {alignment1, alignment2};
         }
     }
 
-    public int[] setCost(String x, String y)
+    public int[] assignCost(String x, String y)
     {
         int [][] opt = new int[2][y.length()+1];
         int index = 1;
@@ -228,24 +212,22 @@ public class Efficient
         String align1 = "";
         String align2 = "";
 
-        int m = x.length();
-        int n = y.length();
-        int opt[][] = new int[x.length()+1][y.length()+1];
+        int[][] opt = new int[x.length()+1][y.length()+1];
         //System.out.println(m + " " + n);
 
-        for(int i=0;i<=m;i++)
+        for(int i=0;i<=x.length();i++)
         {
             opt[i][0] = delta * i;
         }
 
-        for(int j=0;j<=n;j++)
+        for(int j=0;j<=y.length();j++)
         {
             opt[0][j] = delta * j;
         }
 
-        for(int i=1;i<=m;i++)
+        for(int i=1;i<=x.length();i++)
         {
-            for(int j = 1; j<=n;j++)
+            for(int j = 1; j<=y.length();j++)
             {
                 if(x.charAt(i-1)==y.charAt(j-1))
                 {
@@ -255,10 +237,8 @@ public class Efficient
                 {
                     opt[i][j] = Math.min(MismatchCost(x.charAt(i - 1), y.charAt(j - 1)) + opt[i - 1][j - 1],
                             Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
-                    //System.out.print(opt[i][j] + " ");
                 }
             }
-            //System.out.println();
         }
 
         int i = x.length();
@@ -284,8 +264,7 @@ public class Efficient
                 align2 = "_" + align2;
                 i--;
             }
-
-            else //if(OPT[i-1][j-1] + MismatchCost(i-1, j-1) == OPT[i][j])
+            else
             {
                 align1 = x.charAt(i-1) + align1;
                 align2 = y.charAt(j-1) + align2;
@@ -319,7 +298,7 @@ public class Efficient
 
     public String reverseString(String s)
     {
-        StringBuffer sb = new StringBuffer(s);
+        StringBuilder sb = new StringBuilder(s);
         sb.reverse();
         return sb.toString();
     }
@@ -327,35 +306,35 @@ public class Efficient
     public int getCost()
     {
         int cost = 0;
-
-        for (int i = 0; i < alignment1.length(); i++) {
-            if (i < alignment2.length()) {
-                // alignment
-                if (alignment1.charAt(i) == alignment2.charAt(i)) {
+        for (int i = 0; i < finalAlignment1.length(); i++)
+        {
+            if (i < finalAlignment2.length())
+            {
+                if (finalAlignment1.charAt(i) == finalAlignment2.charAt(i))
+                {
                     cost = cost + alpha[0][0];
                 }
-                // gap
-                else if (alignment1.charAt(i) == '_' || alignment2.charAt(i) == '_') {
+                else if (finalAlignment1.charAt(i) == '_' || finalAlignment2.charAt(i) == '_')
+                {
                     cost = cost + delta;
                 }
-                // mismatch
-                else {
-                    cost = cost + MismatchCost(alignment1.charAt(i), alignment2.charAt(i));
+                else
+                {
+                    cost = cost + MismatchCost(finalAlignment1.charAt(i), finalAlignment2.charAt(i));
                 }
             }
         }
         return cost;
     }
 
-    public void createOutput(String outputFile,int cost, double time, double memory)
+    public void createOutput(String outputFile, double time, double memory)
     {
         try
         {
-            File file = new File(outputFile);
             FileWriter fileWriter = new FileWriter(outputFile);
             fileWriter.write(cost + "\n");
-            fileWriter.write(alignment1 + "\n");
-            fileWriter.write(alignment2 + "\n");
+            fileWriter.write(finalAlignment1 + "\n");
+            fileWriter.write(finalAlignment2 + "\n");
             fileWriter.write(time + "\n");
             fileWriter.write(memory + "\n");
 

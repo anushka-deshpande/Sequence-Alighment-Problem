@@ -1,37 +1,42 @@
+/* CSCI570 Fall 22' Project
+   Sequence Alignment Problem
+   Basic.java
+
+   Team Members :-
+   Anushka Deshpande 5914802345
+   Omkar Nikhal 5144173884
+ */
+
+
 import java.io.*;
 import java.util.*;
 
 public class Basic
 {
-
-    String finalS1 = "";
-    String finalS2 = "";
-
-    String alignment1 = "";
-    String alignment2 = "";
+    String finalString1 = "";
+    String finalString2 = "";
+    String finalAlignment1 = "";
+    String finalAlignment2 = "";
     int delta = 30;
-    int[][] alpha = {{0, 110, 48, 94},
+    int[][] alpha = {
+            {0, 110, 48, 94},
             {110, 0, 118, 48},
             {48, 118, 0, 110},
-            {94, 48, 110, 0}};
+            {94, 48, 110, 0}
+    };
 
     int OPTval = 0;
 
     public static void main(String [] args) throws IOException
     {
-
-        String filename = "/Users/anushkadeshpande/IdeaProjects/javaProject/input1.txt";
+        String filename = args[0];
         Basic obj = new Basic();
         obj.getInput(filename);
-
-        System.out.println(obj.finalS1);
-        System.out.println(obj.finalS2);
 
         double beforeUsedMem = getMemoryInKB();
         double startTime = getTimeInMilliseconds();
 
-        int [][] OPT = obj.generateOPT();
-        obj.generateAlignments(OPT);
+        obj.generateAlignments();
 
         double afterUsedMem = getMemoryInKB();
         double endTime = getTimeInMilliseconds();
@@ -39,11 +44,7 @@ public class Basic
         double totalUsage = afterUsedMem-beforeUsedMem;
         double totalTime = endTime - startTime;
 
-        obj.createOutput("/Users/anushkadeshpande/IdeaProjects/javaProject/output.txt", totalTime, totalUsage);
-
-        System.out.println(obj.alignment1);
-        System.out.println(obj.alignment2);
-
+        obj.createOutput(args[1], totalTime, totalUsage);
     }
 
     private static double getMemoryInKB()
@@ -59,11 +60,9 @@ public class Basic
 
     public void getInput(String filename)throws IOException
     {
-        List<Integer> a1 = new ArrayList<>();
-        List<Integer> a2 = new ArrayList<>();
-
         File file = new File(filename);
         Scanner scanFile;
+
         try {
             scanFile = new Scanner(file);
         }
@@ -73,70 +72,52 @@ public class Basic
             return;
         }
 
-        int j = 0;
+        int i = 0;
         String s1 = scanFile.nextLine();
-        String originalS1 = s1;
+        String originalString1 = s1;
 
         while(scanFile.hasNextInt())
         {
             int index = scanFile.nextInt();
-            a1.add(index);
-            j += 1;
+            i += 1;
             s1 = s1.substring(0, index+1) + s1 + s1.substring(index+1);
         }
 
-        int k = 0;
+        int j = 0;
         String s2 = scanFile.next();
-        String originalS2 = s2;
+        String originalString2 = s2;
 
         while(scanFile.hasNextInt())
         {
             int index = scanFile.nextInt();
-            a2.add(index);
-            k += 1;
+            j += 1;
             s2 = s2.substring(0, index + 1) + s2 + s2.substring(index + 1);
         }
+
         scanFile.close();
 
-        assert (s1.length() == Math.pow(2, j) * originalS1.length() &&
-                s1.length() == Math.pow(2, k) * originalS2.length());
+        assert (s1.length() == Math.pow(2, i) * originalString1.length() &&
+                s1.length() == Math.pow(2, j) * originalString2.length());
 
-        finalS1 = s1;
-        finalS2 = s2;
+        finalString1 = s1;
+        finalString2 = s2;
     }
     public int MismatchCost(char a, char b)
     {
         int x = 0,y = 0;
-        switch(a)
-        {
-            case 'A':
-                x = 0;
-                break;
-            case 'C':
-                x = 1;
-                break;
-            case 'G':
-                x = 2;
-                break;
-            case 'T':
-                x = 3;
-                break;
+
+        switch (a) {
+            case 'A' -> x = 0;
+            case 'C' -> x = 1;
+            case 'G' -> x = 2;
+            case 'T' -> x = 3;
         }
 
-        switch(b)
-        {
-            case 'A':
-                y = 0;
-                break;
-            case 'C':
-                y = 1;
-                break;
-            case 'G':
-                y = 2;
-                break;
-            case 'T':
-                y = 3;
-                break;
+        switch (b) {
+            case 'A' -> y = 0;
+            case 'C' -> y = 1;
+            case 'G' -> y = 2;
+            case 'T' -> y = 3;
         }
 
         return alpha[x][y];
@@ -144,10 +125,9 @@ public class Basic
 
     public int[][] generateOPT()
     {
-        int m = finalS1.length();
-        int n = finalS2.length();
-        int opt[][] = new int[finalS1.length()+1][finalS2.length()+1];
-        //System.out.println(m + " " + n);
+        int m = finalString1.length();
+        int n = finalString2.length();
+        int[][] opt = new int[finalString1.length()+1][finalString2.length()+1];
 
         for(int i=0;i<=m;i++)
         {
@@ -163,53 +143,51 @@ public class Basic
         {
             for(int j = 1; j<=n;j++)
             {
-                if(finalS1.charAt(i-1)==finalS2.charAt(j-1))
+                if(finalString1.charAt(i-1)==finalString2.charAt(j-1))
                 {
                     opt[i][j] = opt[i-1][j-1];
                 }
                 else
                 {
-                    opt[i][j] = Math.min(MismatchCost(finalS1.charAt(i - 1), finalS2.charAt(j - 1)) + opt[i - 1][j - 1],
+                    opt[i][j] = Math.min(MismatchCost(finalString1.charAt(i - 1), finalString2.charAt(j - 1)) + opt[i - 1][j - 1],
                             Math.min(delta + opt[i - 1][j], delta + opt[i][j - 1]));
-                    //System.out.print(opt[i][j] + " ");
                 }
             }
-            //System.out.println();
         }
         OPTval = opt[m][n];
         return opt;
     }
 
-    public void generateAlignments(int[][] OPT)
+    public void generateAlignments()
     {
-        int i = finalS1.length();
-        int j = finalS2.length();
+        int [][] OPT = generateOPT();
+        int i = finalString1.length();
+        int j = finalString2.length();
 
         while(i > 0 && j > 0)
         {
-            if (finalS1.charAt(i-1) == finalS2.charAt(j-1))
+            if (finalString1.charAt(i-1) == finalString2.charAt(j-1))
             {
-                alignment1 = finalS1.charAt(i-1) + alignment1;
-                alignment2 = finalS2.charAt(j-1) + alignment2;
+                finalAlignment1 = finalString1.charAt(i-1) + finalAlignment1;
+                finalAlignment2 = finalString2.charAt(j-1) + finalAlignment2;
                 i--;
                 j--;
             }
             else if(OPT[i][j-1] + delta == OPT[i][j])
             {
-                alignment2 = finalS2.charAt(j-1) + alignment2;
-                alignment1 = "_" + alignment1;
+                finalAlignment2 = finalString2.charAt(j-1) + finalAlignment2;
+                finalAlignment1 = "_" + finalAlignment1;
                 j--;
             }
             else if(OPT[i-1][j] + delta == OPT[i][j]) {
-                alignment1 = finalS1.charAt(i - 1) + alignment1;
-                alignment2 = "_" + alignment2;
+                finalAlignment1 = finalString1.charAt(i - 1) + finalAlignment1;
+                finalAlignment2 = "_" + finalAlignment2;
                 i--;
             }
-
-            else //if(OPT[i-1][j-1] + MismatchCost(i-1, j-1) == OPT[i][j])
+            else
             {
-                alignment1 = finalS1.charAt(i-1) + alignment1;
-                alignment2 = finalS2.charAt(j-1) + alignment2;
+                finalAlignment1 = finalString1.charAt(i-1) + finalAlignment1;
+                finalAlignment2 = finalString2.charAt(j-1) + finalAlignment2;
                 i--;
                 j--;
             }
@@ -219,8 +197,8 @@ public class Basic
         {
             while(j > 0)
             {
-                alignment2 = finalS2.charAt(j-1) + alignment2;
-                alignment1 = "_" + alignment1;
+                finalAlignment2 = finalString2.charAt(j-1) + finalAlignment2;
+                finalAlignment1 = "_" + finalAlignment1;
                 j--;
             }
         }
@@ -229,8 +207,8 @@ public class Basic
         {
             while( i > 0)
             {
-                alignment1 = finalS1.charAt(i-1) + alignment1;
-                alignment2 = "_" + alignment2;
+                finalAlignment1 = finalString1.charAt(i-1) + finalAlignment1;
+                finalAlignment2 = "_" + finalAlignment2;
                 i--;
             }
         }
@@ -240,14 +218,12 @@ public class Basic
     {
         try
         {
-            File file = new File(outputFile);
             FileWriter fileWriter = new FileWriter(outputFile);
             fileWriter.write(OPTval + "\n");
-            fileWriter.write(alignment1 + "\n");
-            fileWriter.write(alignment2 + "\n");
+            fileWriter.write(finalAlignment1 + "\n");
+            fileWriter.write(finalAlignment2 + "\n");
             fileWriter.write(time + "\n");
             fileWriter.write(memory + "\n");
-
             fileWriter.close();
         }
         catch(IOException e)
