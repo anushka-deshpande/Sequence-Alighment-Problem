@@ -122,6 +122,8 @@ public class Efficient
         double totalTime = endTime - startTime;
 
         obj.createOutput(args[1], totalTime, totalUsage);
+
+        System.gc();
     }
 
     public String[] divide(String x, String y)
@@ -152,7 +154,7 @@ public class Efficient
             }
 
             String yL = "";
-            String yR = "";
+            String yR = y;
 
             if(k>=1)
             {
@@ -179,7 +181,7 @@ public class Efficient
         {
             if(index == 1)
             {
-                for (int i = 0; i < y.length() + 1; i++)
+                for (int i = 0; i < opt[0].length; i++)
                 {
                     opt[0][i] = i * delta;
                 }
@@ -187,7 +189,7 @@ public class Efficient
 
             opt[1][0] = index * delta;
 
-            for(int j = 1; j < y.length() + 1; j++)
+            for(int j = 1; j < opt[1].length; j++)
             {
                 if(x.charAt(index-1) == y.charAt(j-1))
                 {
@@ -198,7 +200,7 @@ public class Efficient
 
             index++;
 
-            for(int k=0;k<y.length()+1;k++)
+            for(int k=0; k<opt[0].length ;k++)
             {
                 opt[0][k] = opt[1][k];
             }
@@ -346,3 +348,4 @@ public class Efficient
         }
     }
 }
+
