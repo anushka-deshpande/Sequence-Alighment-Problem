@@ -1,10 +1,6 @@
 /* CSCI570 Fall 22' Project
    Sequence Alignment Problem
    Efficient.java
-
-   Team Members :-
-   Anushka Deshpande 5914802345
-   Omkar Nikhal 5144173884
  */
 
 import java.io.*;
