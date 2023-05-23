@@ -1,10 +1,6 @@
 /* CSCI570 Fall 22' Project
    Sequence Alignment Problem
    Basic.java
-
-   Team Members :-
-   Anushka Deshpande 5914802345
-   Omkar Nikhal 5144173884
  */
 
 
